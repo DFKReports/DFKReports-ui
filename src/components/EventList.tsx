@@ -1,14 +1,14 @@
 import axios from 'axios';
-import React, { useState } from "react";
+import React from "react";
 import moment from "moment";
-import { Mainnet, DAppProvider, useEtherBalance, useEthers, Config } from '@usedapp/core'
-import PropTypes from 'prop-types';
+import { useEthers } from '@usedapp/core';
 import DatePicker from "react-datepicker";
 
 import "react-datepicker/dist/react-datepicker.css";
 import "react-datepicker/dist/react-datepicker-cssmodules.css";
 
-import { Center, Heading, Flex, Spacer, Box, Image, Text, Tabs, TabList, TabPanels, Tab, TabPanel } from '@chakra-ui/react'
+import { ExternalLinkIcon, CopyIcon } from "@chakra-ui/icons";
+import { Center, Heading, Flex, Spacer, Box, Image, Text, Tabs, TabList, TabPanels, Tab, TabPanel, Link } from '@chakra-ui/react'
 import {
     Accordion,
     AccordionItem,
@@ -22,11 +22,9 @@ import {
     Table,
     Thead,
     Tbody,
-    Tfoot,
     Tr,
     Th,
     Td,
-    TableCaption,
 } from '@chakra-ui/react'
 
 import ConnectButton from "./ConnectButton";
@@ -40,6 +38,7 @@ interface Event {
     transaction_gasfee: number;
     price: number;
     timestamp: number;
+    transaction_hash: string;
 }
 
 interface Record {
@@ -61,13 +60,20 @@ export default function EventList({ handleOpenModal }: Props) {
     const [startDate, setStartDate] = React.useState<Date | null>(new Date());
 
     function getEventsForWallet() {
-        let baseurl = `http://127.0.0.1:8080/events/${account}/`
+        let baseurl = `http://127.0.0.1:8080/events/${account}`
+        if (startDate != null && endDate != null) {
+            baseurl = `${baseurl}?date_gte=${startDate.valueOf() / 1000}&date_lte=${endDate.valueOf() / 1000}`    
+        } else {
+            baseurl = `${baseurl}/`
+        }
+        console.log(baseurl)
+        
         axios.get(baseurl)
             .then(response => {
                 setIncome(response.data.income);
-                setExpenses(response.data.outcome);
+                setExpenses(response.data.expenses);
                 setTotalIncome(response.data.total_income);
-                setTotalExpenses(response.data.total_outcome);
+                setTotalExpenses(response.data.total_expenses);
                 console.log(response);
             });
 
@@ -110,13 +116,13 @@ export default function EventList({ handleOpenModal }: Props) {
             <Box bg="white" w='99%' m={2} borderRadius='lg'>
                 <Tabs isFitted variant='enclosed'>
                     <TabList color="black">
-                        <Tab>Income: {totalIncome} $</Tab>
-                        <Tab>Expenses: {totalExpenses} $</Tab>
+                        <Tab><Text><b>Income:</b> {Math.round(totalIncome * 100) / 100} $</Text></Tab>
+                        <Tab><Text><b>Expenses:</b> {Math.round(totalExpenses * 100) / 100} $</Text></Tab>
                     </TabList>
                     <TabPanels>
                         <TabPanel>
                             {income.map((record: Record) => (
-                                <Accordion sx={{ bgcolor: "#b0b0b0", m: 1}} allowToggle>
+                                <Accordion sx={{ bgcolor: "#b0b0b0", m: 1 }} allowToggle>
                                     <AccordionItem borderStyle='hidden'>
                                         <h2>
                                             <AccordionButton borderRadius='lg' bgColor='#b0b0b0'>
@@ -133,8 +139,8 @@ export default function EventList({ handleOpenModal }: Props) {
                                             <Table variant='striped' size='sm'>
                                                 <Thead sx={{ bgcolor: "#d99559", m: 1 }}>
                                                     <Tr>
-                                                        <Th width='15%'>TimeStamp</Th>
-                                                        <Th with='20%'>Item</Th>
+                                                        <Th width='10%'>TimeStamp</Th>
+                                                        <Th with='25%'>Item</Th>
                                                         <Th width='10%'>Price</Th>
                                                         <Th width='30%'>Transaction Hash</Th>
                                                         <Th width='15%'>Transaction Gas Fee</Th>
@@ -148,7 +154,21 @@ export default function EventList({ handleOpenModal }: Props) {
                                                             </Td>
                                                             <Td align="left">{event.contract_name}</Td>
                                                             <Td align="left">{event.price} $</Td>
-                                                            <Td></Td>
+                                                            <Td>                <Link
+                                                                fontSize="sm"
+                                                                display="flex"
+                                                                alignItems="center"
+                                                                href={`https://explorer.harmony.one/tx/${event.transaction_hash}`}
+                                                                isExternal
+                                                                ml={6}
+                                                                _hover={{
+                                                                    color: "whiteAlpha.800",
+                                                                    textDecoration: "underline",
+                                                                }}
+                                                            >
+                                                                <ExternalLinkIcon mr={1} />
+                                                                {event.transaction_hash}
+                                                            </Link></Td>
                                                             <Td align="right">{event.transaction_gasfee}</Td>
                                                         </Tr>
                                                     ))}
@@ -163,8 +183,8 @@ export default function EventList({ handleOpenModal }: Props) {
                             ))}
                         </TabPanel>
                         <TabPanel>
-                        {expenses.map((record: Record) => (
-                                <Accordion sx={{ bgcolor: "#b0b0b0", m: 1}} allowToggle>
+                            {expenses.map((record: Record) => (
+                                <Accordion sx={{ bgcolor: "#b0b0b0", m: 1 }} allowToggle>
                                     <AccordionItem borderStyle='hidden'>
                                         <h2>
                                             <AccordionButton borderRadius='lg' bgColor='#b0b0b0'>
@@ -180,9 +200,9 @@ export default function EventList({ handleOpenModal }: Props) {
                                         <AccordionPanel pb={4}>
                                             <Table variant='striped'>
                                                 <Thead sx={{ bgcolor: "#d99559", m: 1 }}>
-                                                <Tr>
-                                                        <Th width='15%'>TimeStamp</Th>
-                                                        <Th with='20%'>Item</Th>
+                                                    <Tr>
+                                                        <Th width='10%'>TimeStamp</Th>
+                                                        <Th with='25%'>Item</Th>
                                                         <Th width='10%'>Price</Th>
                                                         <Th width='30%'>Transaction Hash</Th>
                                                         <Th width='15%'>Transaction Gas Fee</Th>
@@ -196,7 +216,21 @@ export default function EventList({ handleOpenModal }: Props) {
                                                             </Td>
                                                             <Td align="left">{event.contract_name}</Td>
                                                             <Td align="left">{event.price} $</Td>
-                                                            <Td></Td>
+                                                            <Td>                <Link
+                                                                fontSize="sm"
+                                                                display="flex"
+                                                                alignItems="center"
+                                                                href={`https://explorer.harmony.one/tx/${event.transaction_hash}`}
+                                                                isExternal
+                                                                ml={6}
+                                                                _hover={{
+                                                                    color: "whiteAlpha.800",
+                                                                    textDecoration: "underline",
+                                                                }}
+                                                            >
+                                                                <ExternalLinkIcon mr={1} />
+                                                                {event.transaction_hash}
+                                                            </Link></Td>
                                                             <Td align="right">{event.transaction_gasfee}</Td>
                                                         </Tr>
                                                     ))}

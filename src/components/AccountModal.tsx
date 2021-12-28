@@ -101,19 +101,6 @@ import {
                 </Text>
               </Flex>
               <Flex alignContent="center" m={3}>
-                <Button
-                  variant="link"
-                  color="gray.400"
-                  fontWeight="normal"
-                  fontSize="sm"
-                  _hover={{
-                    textDecoration: "none",
-                    color: "whiteAlpha.800",
-                  }}
-                >
-                  <CopyIcon mr={1} />
-                  Copy Address
-                </Button>
                 <Link
                   fontSize="sm"
                   display="flex"
