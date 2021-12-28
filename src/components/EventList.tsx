@@ -107,19 +107,19 @@ export default function EventList({ handleOpenModal }: Props) {
                 </Flex>
 
             </Box>
-            <Box bg="#b0b0b0" w='99%' m={2} borderRadius='lg' borderColor='black'>
+            <Box bg="white" w='99%' m={2} borderRadius='lg'>
                 <Tabs isFitted variant='enclosed'>
-                    <TabList>
+                    <TabList color="black">
                         <Tab>Income: {totalIncome} $</Tab>
                         <Tab>Expenses: {totalExpenses} $</Tab>
                     </TabList>
                     <TabPanels>
                         <TabPanel>
                             {income.map((record: Record) => (
-                                <Accordion sx={{ bgcolor: "#b0b0b0", m: 1 }} allowToggle>
-                                    <AccordionItem>
+                                <Accordion sx={{ bgcolor: "#b0b0b0", m: 1}} allowToggle>
+                                    <AccordionItem borderStyle='hidden'>
                                         <h2>
-                                            <AccordionButton>
+                                            <AccordionButton borderRadius='lg' bgColor='#b0b0b0'>
                                                 <Box flex='1' textAlign='left'>
                                                     <Text><b>{record.event_type}</b></Text>
 
@@ -130,13 +130,14 @@ export default function EventList({ handleOpenModal }: Props) {
                                         </h2>
 
                                         <AccordionPanel pb={4}>
-                                            <Table variant='simple'>
+                                            <Table variant='striped' size='sm'>
                                                 <Thead sx={{ bgcolor: "#d99559", m: 1 }}>
                                                     <Tr>
-                                                        <Th>TimeStamp</Th>
-                                                        <Th>Item</Th>
-                                                        <Th>Price</Th>
-                                                        <Th>Gas Fee</Th>
+                                                        <Th width='15%'>TimeStamp</Th>
+                                                        <Th with='20%'>Item</Th>
+                                                        <Th width='10%'>Price</Th>
+                                                        <Th width='30%'>Transaction Hash</Th>
+                                                        <Th width='15%'>Transaction Gas Fee</Th>
                                                     </Tr>
                                                 </Thead>
                                                 <Tbody>
@@ -145,8 +146,9 @@ export default function EventList({ handleOpenModal }: Props) {
                                                             <Td component="th" scope="row" width="20%">
                                                                 {moment.unix(event.timestamp).format('lll')}
                                                             </Td>
-                                                            <Td width="60%" align="left">{event.contract_name}</Td>
+                                                            <Td align="left">{event.contract_name}</Td>
                                                             <Td align="left">{event.price} $</Td>
+                                                            <Td></Td>
                                                             <Td align="right">{event.transaction_gasfee}</Td>
                                                         </Tr>
                                                     ))}
@@ -161,7 +163,52 @@ export default function EventList({ handleOpenModal }: Props) {
                             ))}
                         </TabPanel>
                         <TabPanel>
-                            <p>Expenses!</p>
+                        {expenses.map((record: Record) => (
+                                <Accordion sx={{ bgcolor: "#b0b0b0", m: 1}} allowToggle>
+                                    <AccordionItem borderStyle='hidden'>
+                                        <h2>
+                                            <AccordionButton borderRadius='lg' bgColor='#b0b0b0'>
+                                                <Box flex='1' textAlign='left'>
+                                                    <Text><b>{record.event_type}</b></Text>
+
+                                                </Box>
+                                                <Text><u>Total:</u> {Math.round(record.total_sum * 100) / 100} $</Text>
+                                                <AccordionIcon w="65px" />
+                                            </AccordionButton>
+                                        </h2>
+
+                                        <AccordionPanel pb={4}>
+                                            <Table variant='striped'>
+                                                <Thead sx={{ bgcolor: "#d99559", m: 1 }}>
+                                                <Tr>
+                                                        <Th width='15%'>TimeStamp</Th>
+                                                        <Th with='20%'>Item</Th>
+                                                        <Th width='10%'>Price</Th>
+                                                        <Th width='30%'>Transaction Hash</Th>
+                                                        <Th width='15%'>Transaction Gas Fee</Th>
+                                                    </Tr>
+                                                </Thead>
+                                                <Tbody>
+                                                    {record.events.map((event: Event) => (
+                                                        <Tr>
+                                                            <Td component="th" scope="row" width="20%">
+                                                                {moment.unix(event.timestamp).format('lll')}
+                                                            </Td>
+                                                            <Td align="left">{event.contract_name}</Td>
+                                                            <Td align="left">{event.price} $</Td>
+                                                            <Td></Td>
+                                                            <Td align="right">{event.transaction_gasfee}</Td>
+                                                        </Tr>
+                                                    ))}
+                                                </Tbody>
+                                            </Table>
+
+                                        </AccordionPanel>
+                                    </AccordionItem>
+
+
+                                </Accordion>
+                            ))}
                         </TabPanel>
                     </TabPanels>
                 </Tabs>
