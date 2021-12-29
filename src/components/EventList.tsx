@@ -3,12 +3,14 @@ import React from "react";
 import moment from "moment";
 import { useEthers } from '@usedapp/core';
 import DatePicker from "react-datepicker";
+import { CSVLink } from 'react-csv';
+
 
 import "react-datepicker/dist/react-datepicker.css";
 import "react-datepicker/dist/react-datepicker-cssmodules.css";
 
-import { ExternalLinkIcon, CopyIcon } from "@chakra-ui/icons";
-import { Center, Heading, Flex, Spacer, Box, Image, Text, Tabs, TabList, TabPanels, Tab, TabPanel, Link } from '@chakra-ui/react'
+import { ExternalLinkIcon, DownloadIcon } from "@chakra-ui/icons";
+import { Center, Heading, Flex, Spacer, Box, Image, Text, Tabs, TabList, TabPanels, Tab, TabPanel, Link, Tooltip } from '@chakra-ui/react'
 import {
     Accordion,
     AccordionItem,
@@ -47,6 +49,8 @@ interface Record {
     total_sum: number;
 }
 
+const dfkReportsApiKey = "3ADCB5DFC57AA9D73CA2A4E19D6F1"
+
 export default function EventList({ handleOpenModal }: Props) {
 
     const { activateBrowserWallet, account } = useEthers()
@@ -59,22 +63,21 @@ export default function EventList({ handleOpenModal }: Props) {
     const [endDate, setEndDate] = React.useState<Date | null>(new Date());
     const [startDate, setStartDate] = React.useState<Date | null>(new Date());
 
+
     function getEventsForWallet() {
-        let baseurl = `http://127.0.0.1:8080/events/${account}`
+        let baseurl = `http://api.dfkreports.com/events/${account}`
         if (startDate != null && endDate != null) {
-            baseurl = `${baseurl}?date_gte=${startDate.valueOf() / 1000}&date_lte=${endDate.valueOf() / 1000}`    
+            baseurl = `${baseurl}?date_gte=${Math.floor(startDate.valueOf() / 1000)}&date_lte=${Math.floor(endDate.valueOf() / 1000)}`
         } else {
             baseurl = `${baseurl}/`
         }
-        console.log(baseurl)
-        
-        axios.get(baseurl)
+
+        axios.get(baseurl, { headers: { "x-api-key": dfkReportsApiKey } })
             .then(response => {
                 setIncome(response.data.income);
                 setExpenses(response.data.expenses);
                 setTotalIncome(response.data.total_income);
                 setTotalExpenses(response.data.total_expenses);
-                console.log(response);
             });
 
     }
@@ -108,15 +111,15 @@ export default function EventList({ handleOpenModal }: Props) {
                     </Box>
                     <Spacer />
                     <Box>
+
                         <ConnectButton handleOpenModal={handleOpenModal} />
                     </Box>
                 </Flex>
-
             </Box>
             <Box bg="white" w='99%' m={2} borderRadius='lg'>
                 <Tabs isFitted variant='enclosed'>
                     <TabList color="black">
-                        <Tab><Text><b>Income:</b> {Math.round(totalIncome * 100) / 100} $</Text></Tab>
+                        <Tab><Text><b>Income:</b> {Math.round(totalIncome * 100) / 100} $ </Text></Tab>
                         <Tab><Text><b>Expenses:</b> {Math.round(totalExpenses * 100) / 100} $</Text></Tab>
                     </TabList>
                     <TabPanels>
@@ -128,14 +131,19 @@ export default function EventList({ handleOpenModal }: Props) {
                                             <AccordionButton borderRadius='lg' bgColor='#b0b0b0'>
                                                 <Box flex='1' textAlign='left'>
                                                     <Text><b>{record.event_type}</b></Text>
-
                                                 </Box>
                                                 <Text><u>Total:</u> {Math.round(record.total_sum * 100) / 100} $</Text>
                                                 <AccordionIcon w="65px" />
                                             </AccordionButton>
                                         </h2>
-
                                         <AccordionPanel pb={4}>
+                                            {record.events.length > 0 &&
+                                                <Tooltip label="Export to csv">
+                                                    <Button><CSVLink data={record.events} filename={`${record.event_type}_Income.csv`}>
+                                                        <DownloadIcon />
+                                                    </CSVLink></Button>
+                                                </Tooltip>
+                                            }
                                             <Table variant='striped' size='sm'>
                                                 <Thead sx={{ bgcolor: "#d99559", m: 1 }}>
                                                     <Tr>
@@ -174,11 +182,8 @@ export default function EventList({ handleOpenModal }: Props) {
                                                     ))}
                                                 </Tbody>
                                             </Table>
-
                                         </AccordionPanel>
                                     </AccordionItem>
-
-
                                 </Accordion>
                             ))}
                         </TabPanel>
@@ -190,14 +195,18 @@ export default function EventList({ handleOpenModal }: Props) {
                                             <AccordionButton borderRadius='lg' bgColor='#b0b0b0'>
                                                 <Box flex='1' textAlign='left'>
                                                     <Text><b>{record.event_type}</b></Text>
-
                                                 </Box>
                                                 <Text><u>Total:</u> {Math.round(record.total_sum * 100) / 100} $</Text>
                                                 <AccordionIcon w="65px" />
                                             </AccordionButton>
                                         </h2>
-
                                         <AccordionPanel pb={4}>
+                                            {record.events.length > 0 &&
+                                                <Tooltip label="Export to csv">
+                                                    <Button><CSVLink data={record.events} filename={`${record.event_type}_Expenses.csv`}>
+                                                        <DownloadIcon />
+                                                    </CSVLink></Button>
+                                                </Tooltip>}
                                             <Table variant='striped'>
                                                 <Thead sx={{ bgcolor: "#d99559", m: 1 }}>
                                                     <Tr>
@@ -236,11 +245,8 @@ export default function EventList({ handleOpenModal }: Props) {
                                                     ))}
                                                 </Tbody>
                                             </Table>
-
                                         </AccordionPanel>
                                     </AccordionItem>
-
-
                                 </Accordion>
                             ))}
                         </TabPanel>
@@ -278,5 +284,4 @@ export default function EventList({ handleOpenModal }: Props) {
             </Box>
         </Box>
     );
-
 }
