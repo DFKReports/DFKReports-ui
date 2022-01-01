@@ -1,6 +1,7 @@
 import { ChakraProvider, useDisclosure } from "@chakra-ui/react";
 import AccountModal from "./components/AccountModal";
 import EventList from "./components/EventList";
+import Footer from './components/Footer';
 
 function App() {
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -14,6 +15,7 @@ function App() {
         }}>
                   <EventList handleOpenModal={onOpen}/>
         <AccountModal isOpen={isOpen} onClose={onClose} />
+        <Footer />
         </div>
 
     </ChakraProvider>

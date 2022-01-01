@@ -65,7 +65,7 @@ export default function EventList({ handleOpenModal }: Props) {
 
 
     function getEventsForWallet() {
-        let baseurl = `http://api.dfkreports.com/events/${account}`
+        let baseurl = `http://127.0.0.1:9000/events/${account}`
         if (startDate != null && endDate != null) {
             baseurl = `${baseurl}?date_gte=${Math.floor(startDate.valueOf() / 1000)}&date_lte=${Math.floor(endDate.valueOf() / 1000)}`
         } else {
