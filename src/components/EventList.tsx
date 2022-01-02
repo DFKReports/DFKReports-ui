@@ -18,6 +18,7 @@ import {
     AccordionPanel,
     Button,
     AccordionIcon,
+    Spinner
 } from '@chakra-ui/react'
 
 import {
@@ -49,7 +50,7 @@ interface Record {
     total_sum: number;
 }
 
-const dfkReportsApiKey = "3ADCB5DFC57AA9D73CA2A4E19D6F1"
+const dfkReportsApiKey = "xxx"
 
 export default function EventList({ handleOpenModal }: Props) {
 
@@ -62,10 +63,12 @@ export default function EventList({ handleOpenModal }: Props) {
     const [totalExpenses, setTotalExpenses] = React.useState(0.0);
     const [endDate, setEndDate] = React.useState<Date | null>(new Date());
     const [startDate, setStartDate] = React.useState<Date | null>(new Date());
+    const [isLoading, setIsLoading] = React.useState(false);
 
 
     function getEventsForWallet() {
-        let baseurl = `http://127.0.0.1:9000/events/${account}`
+        setIsLoading(true)
+        let baseurl = `http://api.dfkreports.com/events/${account}`
         if (startDate != null && endDate != null) {
             baseurl = `${baseurl}?date_gte=${Math.floor(startDate.valueOf() / 1000)}&date_lte=${Math.floor(endDate.valueOf() / 1000)}`
         } else {
@@ -74,10 +77,12 @@ export default function EventList({ handleOpenModal }: Props) {
 
         axios.get(baseurl, { headers: { "x-api-key": dfkReportsApiKey } })
             .then(response => {
+                setIsLoading(false);
                 setIncome(response.data.income);
                 setExpenses(response.data.expenses);
                 setTotalIncome(response.data.total_income);
                 setTotalExpenses(response.data.total_expenses);
+                console.log(response);
             });
 
     }
@@ -109,9 +114,18 @@ export default function EventList({ handleOpenModal }: Props) {
                             Search Transactions
                         </Button>
                     </Box>
+                    <Box>
+                        {isLoading &&
+                            <Spinner
+                                thickness='4px'
+                                speed='0.85s'
+                                emptyColor='gray.200'
+                                color='blue.500'
+                                size='xl'
+                            />}
+                    </Box>
                     <Spacer />
                     <Box>
-
                         <ConnectButton handleOpenModal={handleOpenModal} />
                     </Box>
                 </Flex>
